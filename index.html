@@ -2,97 +2,122 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>小花老師的數織挑戰</title>
+    <title>小花老師的數織遊戲</title>
     <style>
         body { font-family: "微軟正黑體", sans-serif; text-align: center; background-color: #fffae8; margin: 0; padding: 20px; }
-        h1 { color: #5d4037; font-size: 24px; }
-        .controls { margin-bottom: 15px; }
-        button { padding: 10px 20px; font-size: 16px; background: #ffb74d; border: none; border-radius: 20px; cursor: pointer; color: white; font-weight: bold; }
-        button:hover { background: #ff9800; }
+        h1 { color: #5d4037; margin-bottom: 10px; }
         
-        /* 遊戲區域佈局 */
+        /* 選單按鈕區 */
+        .menu { margin-bottom: 20px; }
+        .level-btn {
+            font-size: 18px; padding: 10px 20px; margin: 5px;
+            border: none; border-radius: 15px; cursor: pointer;
+            color: white; font-weight: bold;
+            transition: transform 0.1s;
+        }
+        .level-btn:active { transform: scale(0.95); }
+        .btn-4 { background-color: #81c784; } /* 綠色 */
+        .btn-5 { background-color: #64b5f6; } /* 藍色 */
+        .btn-6 { background-color: #ba68c8; } /* 紫色 */
+
+        /* 操作區 */
+        .controls { margin-top: 15px; margin-bottom: 15px; }
+        .check-btn {
+            padding: 12px 30px; font-size: 20px;
+            background: #ffb74d; border: none; border-radius: 30px;
+            cursor: pointer; color: white; font-weight: bold;
+            box-shadow: 0 4px #e65100; /* 按鈕立體感 */
+        }
+        .check-btn:active { box-shadow: 0 0 #e65100; transform: translateY(4px); }
+
+        /* 遊戲區域 */
+        .game-wrapper {
+            display: flex; justify-content: center; align-items: center;
+        }
         .game-board {
             display: inline-grid;
-            /* 這裡的 grid-template 會由 JS 動態設定 */
             gap: 2px;
-            background-color: #8d6e63; /* 格線顏色 */
+            background-color: #8d6e63;
             border: 5px solid #5d4037;
             padding: 5px;
             border-radius: 10px;
         }
 
-        /* 提示數字區 */
+        /* 提示數字 */
         .hint {
-            background-color: #fff3e0;
-            color: #5d4037;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            font-weight: bold;
-            white-space: pre-line; /* 讓數字可以換行 */
-            line-height: 1.2;
+            background-color: #fff3e0; color: #5d4037;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; font-weight: bold;
+            white-space: pre-line; line-height: 1.2;
         }
-        .hint.row { justify-content: flex-end; padding-right: 5px; }
+        .hint.row { justify-content: flex-end; padding-right: 8px; }
         .hint.col { flex-direction: column; justify-content: flex-end; padding-bottom: 5px; }
 
-        /* 格子樣式 */
+        /* 格子 */
         .cell {
-            width: 40px; height: 40px;
-            background-color: white;
-            cursor: pointer;
+            width: 45px; height: 45px; /* 格子加大，適合小朋友 */
+            background-color: white; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
-            font-size: 24px; user-select: none;
+            font-size: 28px; user-select: none;
         }
-        .cell.filled { background-color: #5d4037; } /* 塗黑 */
-        .cell.x-mark { color: #e57373; } /* 打叉 */
-        .cell:hover { background-color: #eee; }
+        .cell.filled { background-color: #5d4037; }
+        .cell.x-mark { color: #e57373; }
+        .cell:hover { background-color: #f1f1f1; }
 
         /* 結果訊息 */
-        #message { margin-top: 20px; font-size: 20px; font-weight: bold; height: 30px; }
+        #message { margin-top: 20px; font-size: 24px; font-weight: bold; height: 40px; color: #5d4037; }
+        .instructions { color: #888; font-size: 14px; margin-bottom: 10px;}
     </style>
 </head>
 <body>
 
-    <h1>🧶 小花老師的數織遊戲 (Level 1)</h1>
-    
-    <div class="controls">
-        <p>操作說明：滑鼠左鍵「塗黑」，按住 Shift 點擊可「打叉」</p>
-        <button onclick="checkWin()">檢查答案</button>
+    <h1>🧶 小花老師的數織挑戰</h1>
+    <p class="instructions">選擇難度，開始挑戰吧！<br>滑鼠左鍵「塗黑」，按住 Shift 點擊可「打叉」</p>
+
+    <div class="menu">
+        <button class="level-btn btn-4" onclick="startGame(4)">🌱 簡單 (4x4)</button>
+        <button class="level-btn btn-5" onclick="startGame(5)">🌼 普通 (5x5)</button>
+        <button class="level-btn btn-6" onclick="startGame(6)">🌲 挑戰 (6x6)</button>
     </div>
 
-    <div id="board" class="game-board">
-        </div>
+    <div class="game-wrapper">
+        <div id="board" class="game-board" style="display:none;">
+            </div>
+    </div>
 
-    <div id="message"></div>
+    <div class="controls">
+        <button id="checkBtn" class="check-btn" onclick="checkWin()" style="display:none;">檢查答案</button>
+    </div>
+    
+    <div id="message">請選擇一個關卡！</div>
 
     <script>
-        // ==========================================
-        // 老師請改這裡！這就是您的「題目設計圖」
-        // 1 = 塗黑, 0 = 空白
-        // ==========================================
-        const solution = [
-            [0, 1, 0, 1, 0],
-            [1, 1, 1, 1, 1],
-            [1, 1, 1, 1, 1],
-            [0, 1, 1, 1, 0],
-            [0, 0, 1, 0, 0]
-        ];
-        // ==========================================
+        let solution = [];     // 存放正確答案
+        let userGrid = [];     // 存放學生的答案
+        let currentSize = 0;   // 目前的尺寸
 
-        const rows = solution.length;
-        const cols = solution[0].length;
-        const board = document.getElementById('board');
-        let userGrid = Array.from({ length: rows }, () => Array(cols).fill(0));
+        // 1. 產生隨機題目的魔法函數
+        function generateRandomSolution(size) {
+            let newSolution = [];
+            for (let r = 0; r < size; r++) {
+                let row = [];
+                for (let c = 0; c < size; c++) {
+                    // 擲硬幣：50% 機率是 1 (黑)，50% 是 0 (白)
+                    row.push(Math.random() < 0.5 ? 1 : 0);
+                }
+                newSolution.push(row);
+            }
+            // 怕運氣太好全白或全黑，這裡可以加檢查，但對小孩來說簡單玩即可
+            return newSolution;
+        }
 
-        // 1. 計算提示數字的函數
+        // 2. 計算提示數字
         function calculateHints(arr) {
             let hints = [];
             let count = 0;
             for (let val of arr) {
-                if (val === 1) {
-                    count++;
-                } else if (count > 0) {
+                if (val === 1) count++;
+                else if (count > 0) {
                     hints.push(count);
                     count = 0;
                 }
@@ -102,45 +127,44 @@
             return hints;
         }
 
-        function initGame() {
-            // 設定 CSS Grid 佈局：多加一行一列給提示數字
-            board.style.gridTemplateColumns = `60px repeat(${cols}, 40px)`;
-            board.style.gridTemplateRows = `60px repeat(${rows}, 40px)`;
+        // 3. 開始遊戲 (當按下按鈕時執行)
+        function startGame(size) {
+            currentSize = size;
+            solution = generateRandomSolution(size); // 產生隨機題目
+            userGrid = Array.from({ length: size }, () => Array(size).fill(0)); // 清空學生答案
 
-            // --- 產生上方提示 (Column Hints) ---
-            board.appendChild(createDiv('hint')); // 左上角空白格
-            for (let c = 0; c < cols; c++) {
+            const board = document.getElementById('board');
+            board.innerHTML = ''; // 清除舊的格子
+            board.style.display = 'inline-grid';
+            document.getElementById('checkBtn').style.display = 'inline-block';
+            document.getElementById('message').innerText = "遊戲開始！加油！";
+            document.getElementById('message').style.color = "#5d4037";
+
+            // 設定 CSS Grid 排版
+            board.style.gridTemplateColumns = `60px repeat(${size}, 45px)`;
+            board.style.gridTemplateRows = `60px repeat(${size}, 45px)`;
+
+            // --- 繪製上方提示 ---
+            board.appendChild(createDiv('hint')); 
+            for (let c = 0; c < size; c++) {
                 let colData = [];
-                for (let r = 0; r < rows; r++) colData.push(solution[r][c]);
-                let hints = calculateHints(colData);
-                let div = createDiv('hint col', hints.join('\n')); // 垂直排列
-                board.appendChild(div);
+                for (let r = 0; r < size; r++) colData.push(solution[r][c]);
+                board.appendChild(createDiv('hint col', calculateHints(colData).join('\n')));
             }
 
-            // --- 產生每一列 (Row Hints + Cells) ---
-            for (let r = 0; r < rows; r++) {
-                // 左側提示 (Row Hints)
-                let rowData = solution[r];
-                let hints = calculateHints(rowData);
-                let div = createDiv('hint row', hints.join(' ')); // 水平排列
-                board.appendChild(div);
+            // --- 繪製每一列 ---
+            for (let r = 0; r < size; r++) {
+                // 左側提示
+                board.appendChild(createDiv('hint row', calculateHints(solution[r]).join(' ')));
 
                 // 格子
-                for (let c = 0; c < cols; c++) {
+                for (let c = 0; c < size; c++) {
                     let cell = createDiv('cell');
-                    cell.dataset.r = r;
-                    cell.dataset.c = c;
-                    
-                    // 點擊事件
-                    cell.addEventListener('click', (e) => {
-                        handleInput(r, c, cell, e.shiftKey);
-                    });
-                    // 防止右鍵選單跳出來 (為了方便以後加右鍵功能)
+                    cell.addEventListener('click', (e) => handleInput(r, c, cell, e.shiftKey));
                     cell.addEventListener('contextmenu', (e) => {
                         e.preventDefault();
-                        handleInput(r, c, cell, true); // 右鍵直接當作打叉
+                        handleInput(r, c, cell, true);
                     });
-                    
                     board.appendChild(cell);
                 }
             }
@@ -155,61 +179,40 @@
 
         function handleInput(r, c, cell, isMarking) {
             const current = userGrid[r][c];
-            
-            // 狀態循環：0(白) -> 1(黑) -> 2(叉) -> 0(白)
-            // 為了簡單，我們用：左鍵(黑/白切換)，Shift/右鍵(叉/白切換)
-            
-            if (isMarking) { // 打叉模式
+            // 邏輯：0(白) -> 1(黑) -> 2(叉) -> 0(白)
+            if (isMarking) {
                 if (current === 2) {
-                    userGrid[r][c] = 0;
-                    cell.innerText = '';
-                    cell.classList.remove('x-mark');
+                    userGrid[r][c] = 0; cell.innerText = ''; cell.classList.remove('x-mark');
                 } else {
-                    userGrid[r][c] = 2;
-                    cell.innerText = 'X';
-                    cell.classList.remove('filled');
-                    cell.classList.add('x-mark');
+                    userGrid[r][c] = 2; cell.innerText = 'X'; cell.classList.remove('filled'); cell.classList.add('x-mark');
                 }
-            } else { // 塗黑模式
+            } else {
                 if (current === 1) {
-                    userGrid[r][c] = 0;
-                    cell.classList.remove('filled');
+                    userGrid[r][c] = 0; cell.classList.remove('filled');
                 } else {
-                    userGrid[r][c] = 1;
-                    cell.classList.add('filled');
-                    cell.innerText = '';
-                    cell.classList.remove('x-mark');
+                    userGrid[r][c] = 1; cell.classList.add('filled'); cell.innerText = ''; cell.classList.remove('x-mark');
                 }
             }
         }
 
         function checkWin() {
             let isCorrect = true;
-            for (let r = 0; r < rows; r++) {
-                for (let c = 0; c < cols; c++) {
-                    // 檢查邏輯：題目是1的地方，玩家必須填1；題目是0的地方，玩家不能填1 (填0或2都可以)
-                    let answer = solution[r][c];
-                    let user = userGrid[r][c] === 1 ? 1 : 0; // 把打叉(2)當作空白(0)來檢查
-                    
-                    if (answer !== user) {
-                        isCorrect = false;
-                        break;
-                    }
+            for (let r = 0; r < currentSize; r++) {
+                for (let c = 0; c < currentSize; c++) {
+                    let ans = solution[r][c];
+                    let usr = userGrid[r][c] === 1 ? 1 : 0;
+                    if (ans !== usr) { isCorrect = false; break; }
                 }
             }
-
             const msg = document.getElementById('message');
             if (isCorrect) {
                 msg.style.color = 'green';
-                msg.innerText = "🎉 恭喜小花老師！答對了！";
+                msg.innerText = "🎉 好棒喔！你過關了！";
             } else {
                 msg.style.color = 'red';
-                msg.innerText = "❌ 還沒完成喔，再檢查一下！";
+                msg.innerText = "💪 還差一點點，再檢查看看！";
             }
         }
-
-        // 啟動遊戲
-        initGame();
     </script>
 </body>
 </html>
