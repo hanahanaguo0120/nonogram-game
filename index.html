@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>小花老師的數織遊戲</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; background-color: #f0f0f0; }
+        h1 { color: #333; }
+        .game-container { display: inline-block; margin-top: 20px; }
+        .row { display: flex; }
+        .cell {
+            width: 40px; height: 40px; border: 1px solid #999;
+            background-color: white; cursor: pointer; display: flex;
+            align-items: center; justify-content: center;
+        }
+        .cell.filled { background-color: #333; } /* 被填滿的格子 */
+        .cell.x-mark { color: red; font-weight: bold; } /* 打叉的格子 */
+        .clues { font-size: 12px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: #ddd;}
+    </style>
+</head>
+<body>
+
+    <h1>小花老師的數織挑戰</h1>
+    <p>點擊左鍵填色，按住 Shift 點擊標記 X</p>
+    
+    <div class="game-container" id="grid">
+        </div>
+
+    <script>
+        // 簡單的 5x5 範例 (這只是介面演示，尚未包含過關驗證邏輯)
+        const gridSize = 5;
+        const gridContainer = document.getElementById('grid');
+
+        for (let i = 0; i < gridSize; i++) {
+            let row = document.createElement('div');
+            row.className = 'row';
+            for (let j = 0; j < gridSize; j++) {
+                let cell = document.createElement('div');
+                cell.className = 'cell';
+                
+                // 點擊事件
+                cell.addEventListener('click', function(e) {
+                    if (e.shiftKey) {
+                        // 如果按住 Shift，標記 X
+                        this.innerText = this.innerText === 'X' ? '' : 'X';
+                        this.classList.remove('filled');
+                    } else {
+                        // 普通點擊，填色
+                        this.classList.toggle('filled');
+                        this.innerText = '';
+                    }
+                });
+                row.appendChild(cell);
+            }
+            gridContainer.appendChild(row);
+        }
+    </script>
+</body>
+</html>
